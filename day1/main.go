@@ -3,14 +3,19 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"math"
+	"log"
 	"os"
 	"strconv"
 )
 
-func getData(fileName string) []int {
-	//Get data from file and append it to data array
-	f, _ := os.Open(fileName)
+//Rerad textfile to data
+func getData(fileName string) ([]int, error) {
+	var result []int
+	//Get data from file
+	f, err := os.Open(fileName)
+	if err != nil {
+		return result, err
+	}
 	defer f.Close()
 
 	fScanner := bufio.NewScanner(f)
@@ -18,34 +23,46 @@ func getData(fileName string) []int {
 	data := []int{}
 
 	for fScanner.Scan() {
-		lineValue, _ := strconv.Atoi(fScanner.Text())
+		lineValue, err := strconv.Atoi(fScanner.Text())
+		if err != nil {
+			return result, fmt.Errorf("Cant parse %s: %v", fScanner.Text(), err)
+		}
 		data = append(data, lineValue)
 	}
-	return data
+
+	if err = fScanner.Err(); err != nil {
+		return result, err
+	}
+
+	return data, nil
 }
 
-func calculateFuel(data float64) int {
-	return int(math.Floor(data/3) - 2)
+func calculateFuel(mass int) int {
+	return mass/3 - 2
 }
 
-func totalPerModule(data int) int {
-	factor := float64(data / 3)
-	if (factor - 2) <= 0 {
+func totalPerModule(mass int) int {
+	factor := mass/3 - 2
+	if factor <= 0 {
 		return 0
 	}
-	return int(math.Floor(factor)-2) + totalPerModule(int(math.Floor(factor)-2))
+	return factor + totalPerModule(factor)
 }
 
 func main() {
 	//read data
-	data := getData("input.txt")
+	data, err := getData("input.txt")
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	//Part 1 & 2--------------------
 	var fuel int = 0
 	var totalFuel int = 0
-	for _, row := range data {
-		fuel += calculateFuel(float64(row))
-		totalFuel += totalPerModule(row)
+
+	for _, c := range data {
+		fuel += calculateFuel(c)
+		totalFuel += totalPerModule(c)
 	}
 
 	//Print result
