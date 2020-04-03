@@ -10,28 +10,27 @@ import (
 
 //Rerad textfile to data
 func getData(fileName string) ([]int, error) {
-	var result []int
 	//Get data from file
 	f, err := os.Open(fileName)
 	if err != nil {
-		return result, err
+		return nil, err
 	}
 	defer f.Close()
 
 	fScanner := bufio.NewScanner(f)
 
-	data := []int{}
+	var data []int
 
 	for fScanner.Scan() {
 		lineValue, err := strconv.Atoi(fScanner.Text())
 		if err != nil {
-			return result, fmt.Errorf("Cant parse %s: %v", fScanner.Text(), err)
+			return nil, fmt.Errorf("Cant parse %s: %v", fScanner.Text(), err)
 		}
 		data = append(data, lineValue)
 	}
 
 	if err = fScanner.Err(); err != nil {
-		return result, err
+		return nil, err
 	}
 
 	return data, nil
